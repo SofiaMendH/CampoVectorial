@@ -1,0 +1,70 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+b = 1/80.0
+c = 1/40.0
+gamma = 1/5.0
+betas = 1/4.0
+betam = 1/4.0
+
+def sistema1(s, m, i, v):
+    ds_dt = b - b*s + gamma*i - betas*s*v
+    di_dt = betas*s*v - (b + gamma)*i
+    return ds_dt, di_dt
+
+
+def sistema2(s, m, i, v):
+    dm_dt = c - c*m - betam*m*i
+    dv_dt = betam*m*i - c*v
+    return dm_dt, dv_dt
+
+# Definimos el rango de la gráfica
+x_min, x_max = 0, 1  # Supongamos que s, m están en el rango [0, 1]
+y_min, y_max = 0, 1  # Supongamos que i, v están en el rango [0, 1]
+num_points = 30  # Número de puntos en cada eje
+
+punto1 = ((b+gamma)*(betam + c)/(betam*(betas + b + gamma)), (betam*betas - c*(b + gamma))/(betam*(betas + b + gamma)))
+punto2 = ((c*(betas + b + gamma))/(betas*(betam + c)), (betam*betas - c*(b + gamma))/(betas*(betam + c)))
+
+print(punto1, punto2)
+
+x = np.linspace(x_min, x_max, num_points)
+y = np.linspace(y_min, y_max, num_points)
+X, Y = np.meshgrid(x, y)
+
+# Calculamos el campo direccional para el primer sistema
+U1, V1 = np.zeros(X.shape), np.zeros(Y.shape)
+for i in range(num_points):
+    for j in range(num_points):
+        ds_dt, dv_dt = sistema1(X[i, j], Y[i, j], X[i, j], Y[i, j])
+        U1[i, j] = ds_dt
+        V1[i, j] = dv_dt
+
+# Calculamos el campo direccional para el segundo sistema
+U2, V2 = np.zeros(X.shape), np.zeros(Y.shape)
+for i in range(num_points):
+    for j in range(num_points):
+        dm_dt, di_dt = sistema2(X[i, j], Y[i, j], X[i, j], Y[i, j])
+        U2[i, j] = dm_dt
+        V2[i, j] = di_dt
+
+# Graficamos ambos campos direccionales
+plt.figure(figsize=(10, 10))
+
+# Primer sistema en color azul
+plt.quiver(X, Y, U1, V1, color='b', label='Población de huéspedes')
+
+# Segundo sistema en color rojo
+plt.quiver(X, Y, U2, V2, color='r', label='Población de vectores')
+
+plt.scatter(punto1[0], punto1[1], label="Equilibrio S/I")
+plt.scatter(punto2[0], punto2[1], label="Equilibrio M/V")
+
+plt.xlabel('Suceptibles')
+plt.ylabel('Infectados')
+plt.title('Campos Direccionales de la población de huéspedes y vectores')
+plt.xlim([x_min, x_max])
+plt.ylim([y_min, y_max])
+plt.grid()
+plt.legend()
+plt.show()
